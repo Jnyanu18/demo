@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #F8F9FC;
+  color: #1A1A2E;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: #6C63FF;
+  color: #ffffff;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #F8F9FC; }
+::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #6C63FF; }
+
+/* Smooth transitions globally */
+a, button { transition: all 0.18s ease; }
+
+/* Hide scrollbar but keep scrollable */
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* Hero gradient backgrounds */
+.hero-purple { background: linear-gradient(135deg, #6C63FF 0%, #8B5CF6 50%, #4338CA 100%); }
+.hero-navy { background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%); }
+.hero-green { background: linear-gradient(135deg, #065F46 0%, #059669 50%, #10B981 100%); }
+
+/* Card hover effect */
+.product-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(108,99,255,0.16); }
+
+/* Badge pulse for live indicators */
+.live-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+/* Gradient text */
+.gradient-text { background: linear-gradient(135deg, #6C63FF, #FF6584); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+/* Star rating color */
+.star-filled { color: #F59E0B; }
+
+/* Shimmer skeleton */
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Ticker tape */
+.ticker-wrap { overflow: hidden; white-space: nowrap; }
+.ticker-inner { display: inline-flex; animation: ticker 28s linear infinite; }
+.ticker-inner:hover { animation-play-state: paused; }
+
+/* Input focus ring */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+}
+
+/* Sticky add to cart animation */
+@keyframes bump {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.btn-press:active { animation: bump 0.15s ease; }

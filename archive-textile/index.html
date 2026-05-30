@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grid Stores — Wear the Art of India</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            burgundy: { DEFAULT: '#6B1F2A', dark: '#551019', deep: '#42101A' },
+            cream: { DEFAULT: '#FAF3E0', dark: '#F2E7CC', card: '#FFFDF7' },
+            gold: { DEFAULT: '#C9A84C', dark: '#AE8E36', light: '#E2C878' },
+            charcoal: { DEFAULT: '#1A1A1A', soft: '#3A3733' },
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: #FAF3E0;
+    }
+
+    ::selection {
+      background: #C9A84C;
+      color: #1A1A1A;
+    }
+
+    .marquee-track {
+      animation: marquee 32s linear infinite;
+    }
+
+    @keyframes marquee {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    .eyebrow {
+      letter-spacing: 0.28em;
+    }
+
+    .hero-grain {
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(201, 168, 76, 0.22), transparent 45%),
+        radial-gradient(circle at 85% 70%, rgba(201, 168, 76, 0.14), transparent 40%),
+        linear-gradient(135deg, #551019 0%, #6B1F2A 55%, #42101A 100%);
+    }
+
+    .weave {
+      background-image:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.04) 0 2px, transparent 2px 9px),
+        repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 0 2px, transparent 2px 9px);
+    }
+
+    .card-shadow {
+      box-shadow: 0 10px 30px -12px rgba(66, 16, 26, 0.20);
+    }
+
+    .card-shadow-hover:hover {
+      box-shadow: 0 22px 44px -18px rgba(66, 16, 26, 0.34);
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+    integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+    crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+    integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+    crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+    integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+    crossorigin="anonymous"></script>
+
+  <script type="text/babel" data-presets="react">
+    const { useState } = React;
+
+    /* ----------------------------- Icons (lucide-style inline SVG) ----------------------------- */
+    const ICONS = {
+      search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+      heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+      bag: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+      user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+      menu: '<line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/>',
+      x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+      star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+      arrowRight: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+      chevronRight: '<path d="m9 18 6-6-6-6"/>',
+      truck: '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
+      shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+      refresh: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+      scissors: '<circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/>',
+      mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+      phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+      pin: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
+      plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+      instagram: '<rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>',
+      facebook: '<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>',
+      twitter: '<path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>',
+      sparkles: '<path d="M9.94 14.06A2 2 0 0 0 8.5 12.6l-5.14-1.32a.5.5 0 0 1 0-.96L8.5 9A2 2 0 0 0 9.94 7.5l1.32-5.14a.5.5 0 0 1 .96 0L13.5 7.5A2 2 0 0 0 14.94 9l5.14 1.32a.5.5 0 0 1 0 .96L14.94 12.6a2 2 0 0 0-1.44 1.46l-1.32 5.14a.5.5 0 0 1-.96 0z"/>',
+    };
+
+    function Icon({ name, size = 22, fill = 'none', stroke = 'currentColor', sw = 2, className = '' }) {
+      return (
+        <svg
+          width={size} height={size} viewBox="0 0 24 24" fill={fill}
+          stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"
+          className={className} aria-hidden="true"
+          dangerouslySetInnerHTML={{ __html: ICONS[name] || '' }}
+        />
+      );
+    }
+
+    /* ----------------------------- Data ----------------------------- */
+    const NAV = ['Home', 'Shop', 'Collections', 'About', 'Contact'];
+
+    const CATEGORIES = [
+      { name: 'Sarees', count: '320+ designs', tone: '#6B1F2A', text: '#FAF3E0', icon: 'sparkles' },
+      { name: 'Kurta Fabrics', count: '210+ designs', tone: '#C9A84C', text: '#42101A', icon: 'scissors' },
+      { name: 'Dress Materials', count: '180+ designs', tone: '#42101A', text: '#FAF3E0', icon: 'sparkles' },
+      { name: 'Blouse Pieces', count: '140+ designs', tone: '#F2E7CC', text: '#6B1F2A', icon: 'scissors' },
+      { name: 'Cotton Fabrics', count: '260+ designs', tone: '#AE8E36', text: '#FFFDF7', icon: 'sparkles' },
+    ];
+
+    const PRODUCTS = [
+      { name: 'Banarasi Silk Saree', fabric: 'Pure Silk', price: 3499, mrp: 5999, img: '6B1F2A/FAF3E0?text=Banarasi+Silk' },
+      { name: 'Chanderi Kurta Fabric', fabric: 'Chanderi Cotton', price: 899, mrp: 1499, img: 'C9A84C/42101A?text=Chanderi' },
+      { name: 'Kanjivaram Pure Silk Saree', fabric: 'Kanjivaram Silk', price: 8999, mrp: 14999, img: '42101A/E2C878?text=Kanjivaram' },
+      { name: 'Jaipuri Dress Material', fabric: 'Block-Print Cotton', price: 1199, mrp: 1999, img: 'FAF3E0/6B1F2A?text=Jaipuri+Set' },
+      { name: 'Tussar Silk Blouse Piece', fabric: 'Tussar Silk', price: 649, mrp: 999, img: 'AE8E36/FFFDF7?text=Tussar+Blouse' },
+      { name: 'Handloom Linen Fabric', fabric: 'Linen Cotton', price: 1099, mrp: 1799, img: '6B1F2A/E2C878?text=Linen' },
+      { name: 'Bandhani Georgette Dupatta', fabric: 'Georgette', price: 799, mrp: 1299, img: 'C9A84C/42101A?text=Bandhani' },
+      { name: 'Maheshwari Handloom Saree', fabric: 'Handloom Silk', price: 2799, mrp: 4499, img: '42101A/FAF3E0?text=Maheshwari' },
+    ];
+
+    const TESTIMONIALS = [
+      { name: 'Ananya Iyer', city: 'Chennai', rating: 5, text: 'The Kanjivaram I ordered is exactly as pictured — the gold zari is rich and the fall of the silk is gorgeous. Worth every rupee.' },
+      { name: 'Meera Deshpande', city: 'Pune', rating: 5, text: 'I buy all my kurta fabrics from Grid Stores now. Honest fabric descriptions, quick delivery, and the cotton is genuinely breathable.' },
+      { name: 'Ritu Bansal', city: 'Jaipur', rating: 4, text: 'Lovely Bandhani dupatta, beautifully packed with a handwritten note. Knocked one star only because I wished for more colour options.' },
+    ];
+
+    const fmt = (n) => '₹' + n.toLocaleString('en-IN');
+    const pct = (price, mrp) => Math.round(((mrp - price) / mrp) * 100);
+
+    /* ----------------------------- Small UI atoms ----------------------------- */
+    function Stars({ rating, size = 15 }) {
+      return (
+        <span className="inline-flex items-center gap-0.5">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Icon key={i} name="star" size={size} sw={1}
+              fill={i <= rating ? '#C9A84C' : 'none'}
+              stroke={i <= rating ? '#C9A84C' : '#C9A84C'}
+              className={i <= rating ? '' : 'opacity-40'} />
+          ))}
+        </span>
+      );
+    }
+
+    function Pill({ children, variant = 'solid', className = '', ...props }) {
+      const base = 'group inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-wide transition-all duration-300 active:scale-95 px-7 py-3.5 text-sm';
+      const styles = {
+        solid: 'bg-gold text-charcoal hover:bg-gold-light hover:-translate-y-0.5 shadow-[0_10px_28px_-8px_rgba(201,168,76,0.55)]',
+        outline: 'border border-cream/60 text-cream hover:bg-cream hover:text-burgundy hover:-translate-y-0.5',
+        dark: 'bg-burgundy text-cream hover:bg-burgundy-dark hover:-translate-y-0.5 shadow-[0_12px_28px_-12px_rgba(66,16,26,0.6)]',
+      };
+      return <button className={`${base} ${styles[variant]} ${className}`} {...props}>{children}</button>;
+    }
+
+    /* ----------------------------- Header ----------------------------- */
+    function Header({ cartCount, wishCount }) {
+      const [open, setOpen] = useState(false);
+      return (
+        <header className="sticky top-0 z-50 border-b border-burgundy/10 bg-cream/90 backdrop-blur-md">
+          <div className="hidden md:flex items-center justify-center gap-2 bg-burgundy py-1.5 text-[11px] eyebrow uppercase text-cream/80">
+            <Icon name="sparkles" size={12} stroke="#C9A84C" />
+            Handpicked weaves from across India · Crafted to wear, made to last
+          </div>
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+            <a href="#" className="flex items-center gap-3">
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-burgundy text-cream shadow-md">
+                <span className="font-serif text-xl font-bold leading-none text-gold">G</span>
+              </span>
+              <span className="leading-tight">
+                <span className="block font-serif text-xl font-bold text-burgundy">Grid Stores</span>
+                <span className="block text-[10px] eyebrow uppercase text-gold-dark">The Art of Indian Cloth</span>
+              </span>
+            </a>
+
+            <nav className="hidden items-center gap-8 lg:flex">
+              {NAV.map((n, i) => (
+                <a key={n} href="#"
+                  className={`relative text-sm font-medium tracking-wide transition-colors hover:text-gold-dark ${i === 0 ? 'text-burgundy' : 'text-charcoal-soft'}`}>
+                  {n}
+                  {i === 0 && <span className="absolute -bottom-1.5 left-0 h-0.5 w-full rounded-full bg-gold" />}
+                </a>
+              ))}
+            </nav>
+
+            <div className="flex items-center gap-1 sm:gap-2">
+              <IconBtn name="search" label="Search" />
+              <IconBtn name="heart" label="Wishlist" badge={wishCount} />
+              <IconBtn name="bag" label="Cart" badge={cartCount} />
+              <a href="#" className="ml-1 hidden items-center gap-2 rounded-full border border-burgundy/25 px-5 py-2.5 text-sm font-medium text-burgundy transition-all hover:bg-burgundy hover:text-cream sm:inline-flex">
+                <Icon name="user" size={16} /> Login
+              </a>
+              <button onClick={() => setOpen((o) => !o)} className="grid h-10 w-10 place-items-center rounded-full text-burgundy hover:bg-burgundy/10 lg:hidden">
+                <Icon name={open ? 'x' : 'menu'} size={22} />
+              </button>
+            </div>
+          </div>
+
+          {open && (
+            <div className="border-t border-burgundy/10 bg-cream px-4 py-3 lg:hidden">
+              <div className="flex flex-col">
+                {NAV.map((n) => (
+                  <a key={n} href="#" className="flex items-center justify-between rounded-xl px-3 py-3 text-sm font-medium text-charcoal hover:bg-burgundy/5">
+                    {n} <Icon name="chevronRight" size={16} stroke="#C9A84C" />
+                  </a>
+                ))}
+                <a href="#" className="mt-2 flex items-center justify-center gap-2 rounded-full bg-burgundy py-3 text-sm font-medium text-cream">
+                  <Icon name="user" size={16} /> Login / Sign up
+                </a>
+              </div>
+            </div>
+          )}
+        </header>
+      );
+    }
+
+    function IconBtn({ name, label, badge }) {
+      return (
+        <button aria-label={label} className="relative grid h-10 w-10 place-items-center rounded-full text-burgundy transition-colors hover:bg-burgundy/10">
+          <Icon name={name} size={21} />
+          {badge > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-charcoal">{badge}</span>
+          )}
+        </button>
+      );
+    }
+
+    /* ----------------------------- Hero ----------------------------- */
+    function Hero() {
+      return (
+        <section className="hero-grain weave relative overflow-hidden text-cream">
+          <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 md:py-28 lg:grid-cols-2 lg:gap-16 lg:px-8">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-[11px] eyebrow uppercase text-gold-light">
+                <Icon name="sparkles" size={13} /> New Festive Edit · 2026
+              </span>
+              <h1 className="mt-6 font-serif text-5xl font-bold leading-[1.05] sm:text-6xl lg:text-7xl">
+                Wear the<br /><span className="italic text-gold">Art of India</span>
+              </h1>
+              <p className="mt-6 max-w-md text-base leading-relaxed text-cream/75">
+                Handloom sarees, soft cottons and pure silks — sourced direct from weavers and dyers across the country. Real fabric, honest prices, delivered to your door.
+              </p>
+              <div className="mt-9 flex flex-wrap gap-4">
+                <Pill variant="solid">Shop Now <Icon name="arrowRight" size={17} className="transition-transform group-hover:translate-x-1" /></Pill>
+                <Pill variant="outline">Explore Collections</Pill>
+              </div>
+              <div className="mt-12 flex flex-wrap items-center gap-x-10 gap-y-4">
+                {[['12,000+', 'Happy customers'], ['1,300+', 'Fabrics in store'], ['4.8 ★', 'Average rating']].map(([n, l]) => (
+                  <div key={l}>
+                    <div className="font-serif text-2xl font-bold text-gold-light">{n}</div>
+                    <div className="text-[11px] eyebrow uppercase text-cream/60">{l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="grid grid-cols-2 gap-4">
+                <img src="https://placehold.co/420x560/FAF3E0/6B1F2A?text=Banarasi" alt="Banarasi saree" className="mt-8 h-full w-full rounded-3xl object-cover shadow-2xl" />
+                <img src="https://placehold.co/420x480/C9A84C/42101A?text=Handloom" alt="Handloom fabric" className="h-full w-full rounded-3xl object-cover shadow-2xl" />
+                <img src="https://placehold.co/420x480/42101A/E2C878?text=Silk+Weave" alt="Silk weave" className="-mt-4 h-full w-full rounded-3xl object-cover shadow-2xl" />
+                <img src="https://placehold.co/420x560/AE8E36/FFFDF7?text=Cotton" alt="Cotton fabric" className="-mt-12 h-full w-full rounded-3xl object-cover shadow-2xl" />
+              </div>
+              <div className="absolute -left-4 bottom-6 hidden items-center gap-3 rounded-2xl bg-cream/95 px-4 py-3 shadow-2xl backdrop-blur sm:flex">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-burgundy text-gold"><Icon name="shield" size={20} /></span>
+                <div className="leading-tight">
+                  <div className="text-sm font-semibold text-burgundy">100% Authentic</div>
+                  <div className="text-[11px] text-charcoal-soft">Loom-certified weaves</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    /* ----------------------------- Marquee ----------------------------- */
+    function Marquee() {
+      const items = ['Free shipping above ₹999', 'New arrivals every Friday', '100% authentic fabrics', 'Easy 7-day returns', 'Direct from weavers'];
+      const row = [...items, ...items];
+      return (
+        <div className="overflow-hidden border-y border-gold/30 bg-gold py-3">
+          <div className="marquee-track flex w-max items-center gap-0 whitespace-nowrap">
+            {row.map((t, i) => (
+              <span key={i} className="flex items-center text-sm font-semibold tracking-wide text-charcoal">
+                <span className="px-8">{t}</span>
+                <span className="text-burgundy">·</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    /* ----------------------------- Categories ----------------------------- */
+    function SectionHead({ eyebrow, title, sub, action }) {
+      return (
+        <div className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <span className="text-[11px] eyebrow uppercase text-gold-dark">{eyebrow}</span>
+            <h2 className="mt-2 font-serif text-3xl font-bold text-burgundy sm:text-4xl">{title}</h2>
+            {sub && <p className="mt-2 max-w-lg text-sm text-charcoal-soft">{sub}</p>}
+          </div>
+          {action && (
+            <a href="#" className="group inline-flex items-center gap-2 text-sm font-medium text-burgundy hover:text-gold-dark">
+              {action} <Icon name="arrowRight" size={16} className="transition-transform group-hover:translate-x-1" />
+            </a>
+          )}
+        </div>
+      );
+    }
+
+    function Categories() {
+      return (
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+          <SectionHead eyebrow="Shop by Category" title="Find Your Weave" sub="From everyday cottons to occasion silks — five edits, every fabric you need." action="View all categories" />
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+            {CATEGORIES.map((c) => (
+              <a key={c.name} href="#"
+                className="card-shadow card-shadow-hover group relative flex h-44 flex-col justify-between overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1"
+                style={{ background: c.tone, color: c.text }}>
+                <span className="grid h-11 w-11 place-items-center rounded-full" style={{ background: 'rgba(255,255,255,0.16)' }}>
+                  <Icon name={c.icon} size={20} stroke={c.text} />
+                </span>
+                <div>
+                  <div className="font-serif text-lg font-bold leading-tight">{c.name}</div>
+                  <div className="mt-1 flex items-center gap-1 text-[11px] opacity-80">
+                    {c.count} <Icon name="chevronRight" size={13} stroke={c.text} className="transition-transform group-hover:translate-x-1" />
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    /* ----------------------------- Product card ----------------------------- */
+    function ProductCard({ p, wished, onWish, onAdd }) {
+      return (
+        <div className="card-shadow card-shadow-hover group flex flex-col overflow-hidden rounded-2xl border border-burgundy/8 bg-cream-card transition-all duration-300 hover:-translate-y-1">
+          <div className="relative overflow-hidden">
+            <img src={`https://placehold.co/600x720/${p.img}`} alt={p.name}
+              className="aspect-[5/6] w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <span className="absolute left-3 top-3 rounded-full bg-burgundy px-2.5 py-1 text-[11px] font-bold text-gold-light">
+              {pct(p.price, p.mrp)}% OFF
+            </span>
+            <button onClick={onWish} aria-label="Add to wishlist"
+              className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-cream/90 text-burgundy shadow-md backdrop-blur transition-colors hover:bg-cream">
+              <Icon name="heart" size={17} fill={wished ? '#6B1F2A' : 'none'} />
+            </button>
+          </div>
+          <div className="flex flex-1 flex-col p-4">
+            <span className="text-[10px] eyebrow uppercase text-gold-dark">{p.fabric}</span>
+            <h3 className="mt-1.5 font-serif text-base font-bold leading-snug text-charcoal">{p.name}</h3>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-lg font-bold text-burgundy">{fmt(p.price)}</span>
+              <span className="text-sm text-charcoal-soft line-through">{fmt(p.mrp)}</span>
+            </div>
+            <button onClick={onAdd}
+              className="group/btn mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-burgundy py-2.5 text-sm font-medium text-cream transition-all hover:bg-burgundy-dark active:scale-95">
+              <Icon name="bag" size={16} /> Add to Cart
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function Bestsellers({ wishlist, onWish, onAdd }) {
+      return (
+        <section className="bg-cream-dark/40 py-16 md:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <SectionHead eyebrow="Loved by Thousands" title="This Week's Bestsellers" sub="The weaves our customers keep coming back for." action="Shop all bestsellers" />
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+              {PRODUCTS.map((p, i) => (
+                <ProductCard key={i} p={p} wished={wishlist.has(i)} onWish={() => onWish(i)} onAdd={() => onAdd(i)} />
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    /* ----------------------------- New Arrivals banner ----------------------------- */
+    function NewArrivals() {
+      return (
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-20 lg:px-8">
+          <div className="hero-grain weave relative overflow-hidden rounded-3xl px-8 py-16 text-cream md:px-16 md:py-20">
+            <div className="relative max-w-xl">
+              <span className="text-[11px] eyebrow uppercase text-gold-light">Fresh off the loom</span>
+              <h2 className="mt-3 font-serif text-4xl font-bold leading-tight md:text-5xl">New Arrivals,<br /><span className="italic text-gold">every Friday.</span></h2>
+              <p className="mt-5 text-base text-cream/75">Be first to the week's freshest weaves. Festive silks, breezy cottons and limited handloom runs — gone before the weekend.</p>
+              <div className="mt-8 flex flex-wrap gap-4">
+                <Pill variant="solid">Shop New In <Icon name="arrowRight" size={17} className="transition-transform group-hover:translate-x-1" /></Pill>
+                <Pill variant="outline">Set a Reminder</Pill>
+              </div>
+            </div>
+            <Icon name="sparkles" size={220} stroke="#C9A84C" className="pointer-events-none absolute -right-10 -top-10 opacity-10" />
+          </div>
+        </section>
+      );
+    }
+
+    /* ----------------------------- Why us strip ----------------------------- */
+    function WhyUs() {
+      const items = [
+        { icon: 'truck', t: 'Free Shipping', d: 'On every order above ₹999, across India.' },
+        { icon: 'shield', t: '100% Authentic', d: 'Loom-certified, no power-loom imitations.' },
+        { icon: 'refresh', t: 'Easy 7-Day Returns', d: 'Changed your mind? Send it right back.' },
+        { icon: 'scissors', t: 'Tailoring Add-on', d: 'Get your blouse or kurta stitched to fit.' },
+      ];
+      return (
+        <section className="border-y border-burgundy/10 bg-cream-card">
+          <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px overflow-hidden px-4 sm:px-6 lg:grid-cols-4 lg:px-8">
+            {items.map((it) => (
+              <div key={it.t} className="flex items-start gap-4 py-8 pr-4">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-burgundy/8 text-burgundy"><Icon name={it.icon} size={22} /></span>
+                <div>
+                  <div className="font-serif text-base font-bold text-burgundy">{it.t}</div>
+                  <div className="mt-1 text-[13px] leading-snug text-charcoal-soft">{it.d}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    /* ----------------------------- Testimonials ----------------------------- */
+    function Testimonials() {
+      return (
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+          <div className="mb-10 text-center">
+            <span className="text-[11px] eyebrow uppercase text-gold-dark">In Their Words</span>
+            <h2 className="mt-2 font-serif text-3xl font-bold text-burgundy sm:text-4xl">Loved Across India</h2>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {TESTIMONIALS.map((t) => (
+              <div key={t.name} className="card-shadow flex flex-col rounded-2xl border border-burgundy/8 bg-cream-card p-7">
+                <Stars rating={t.rating} size={17} />
+                <p className="mt-4 flex-1 text-[15px] leading-relaxed text-charcoal-soft">“{t.text}”</p>
+                <div className="mt-6 flex items-center gap-3 border-t border-burgundy/10 pt-5">
+                  <span className="grid h-11 w-11 place-items-center rounded-full bg-burgundy font-serif text-base font-bold text-gold-light">
+                    {t.name.charAt(0)}
+                  </span>
+                  <div>
+                    <div className="text-sm font-semibold text-burgundy">{t.name}</div>
+                    <div className="flex items-center gap-1 text-[12px] text-charcoal-soft"><Icon name="pin" size={12} stroke="#C9A84C" /> {t.city}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    /* ----------------------------- Newsletter ----------------------------- */
+    function Newsletter() {
+      const [email, setEmail] = useState('');
+      const [done, setDone] = useState(false);
+      return (
+        <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+          <div className="overflow-hidden rounded-3xl border border-gold/40 bg-cream-card px-8 py-14 text-center md:px-16">
+            <span className="grid h-14 w-14 mx-auto place-items-center rounded-full bg-gold/15 text-gold-dark"><Icon name="mail" size={26} /></span>
+            <h2 className="mt-5 font-serif text-3xl font-bold text-burgundy sm:text-4xl">Join the Grid Stores List</h2>
+            <p className="mx-auto mt-3 max-w-md text-sm text-charcoal-soft">Early access to new weaves, festive edits and subscriber-only prices. No spam — just good cloth.</p>
+            <form onSubmit={(e) => { e.preventDefault(); if (email) setDone(true); }}
+              className="mx-auto mt-7 flex max-w-md flex-col gap-3 sm:flex-row">
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com"
+                className="w-full rounded-full border border-burgundy/20 bg-cream px-5 py-3.5 text-sm text-charcoal outline-none transition-colors focus:border-gold focus:ring-2 focus:ring-gold/30" />
+              <Pill variant="dark" type="submit" className="shrink-0">{done ? 'Subscribed ✓' : 'Subscribe'}</Pill>
+            </form>
+          </div>
+        </section>
+      );
+    }
+
+    /* ----------------------------- Footer ----------------------------- */
+    function Footer() {
+      const cols = [
+        { h: 'Shop', links: ['Sarees', 'Kurta Fabrics', 'Dress Materials', 'Blouse Pieces', 'New Arrivals'] },
+        { h: 'Company', links: ['About Us', 'Our Weavers', 'Sustainability', 'Careers', 'Press'] },
+        { h: 'Help', links: ['Track Order', 'Shipping & Returns', 'Size & Fabric Guide', 'FAQs', 'Contact Us'] },
+      ];
+      return (
+        <footer className="bg-burgundy-deep text-cream">
+          <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:px-8">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-gold text-burgundy-deep"><span className="font-serif text-xl font-bold">G</span></span>
+                <span className="font-serif text-xl font-bold">Grid Stores</span>
+              </div>
+              <p className="mt-5 max-w-xs text-sm leading-relaxed text-cream/65">
+                A textile store celebrating India's looms — sarees, fabrics and ethnic wear, sourced direct from the people who make them.
+              </p>
+              <div className="mt-6 flex flex-col gap-2 text-sm text-cream/70">
+                <span className="flex items-center gap-2"><Icon name="pin" size={15} stroke="#C9A84C" /> 14 Commercial Street, Bengaluru 560001</span>
+                <span className="flex items-center gap-2"><Icon name="phone" size={15} stroke="#C9A84C" /> +91 98860 11223</span>
+                <span className="flex items-center gap-2"><Icon name="mail" size={15} stroke="#C9A84C" /> care@gridstores.in</span>
+              </div>
+              <div className="mt-6 flex gap-3">
+                {['instagram', 'facebook', 'twitter'].map((s) => (
+                  <a key={s} href="#" aria-label={s} className="grid h-10 w-10 place-items-center rounded-full border border-cream/20 text-cream/80 transition-colors hover:border-gold hover:bg-gold hover:text-burgundy-deep">
+                    <Icon name={s} size={18} sw={s === 'facebook' ? 0 : 2} fill={s === 'facebook' ? 'currentColor' : 'none'} />
+                  </a>
+                ))}
+              </div>
+            </div>
+            {cols.map((c) => (
+              <div key={c.h}>
+                <h4 className="text-[11px] eyebrow uppercase text-gold-light">{c.h}</h4>
+                <ul className="mt-5 flex flex-col gap-3">
+                  {c.links.map((l) => (
+                    <li key={l}><a href="#" className="text-sm text-cream/70 transition-colors hover:text-gold-light">{l}</a></li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-cream/10">
+            <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-6 text-center sm:flex-row sm:px-6 sm:text-left lg:px-8">
+              <p className="text-[13px] text-cream/55">© 2026 Grid Stores. Handwoven with care in India.</p>
+              <div className="flex items-center gap-2 text-cream/55">
+                <span className="text-[11px] eyebrow uppercase">We accept</span>
+                {['UPI', 'Visa', 'RuPay', 'COD'].map((m) => (
+                  <span key={m} className="rounded-md border border-cream/20 px-2.5 py-1 text-[11px] font-semibold text-cream/75">{m}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </footer>
+      );
+    }
+
+    /* ----------------------------- App ----------------------------- */
+    function App() {
+      const [cart, setCart] = useState(2);
+      const [wishlist, setWishlist] = useState(() => new Set());
+
+      const onWish = (i) => setWishlist((prev) => {
+        const next = new Set(prev);
+        next.has(i) ? next.delete(i) : next.add(i);
+        return next;
+      });
+      const onAdd = () => setCart((c) => c + 1);
+
+      return (
+        <div className="font-sans text-charcoal">
+          <Header cartCount={cart} wishCount={wishlist.size} />
+          <Hero />
+          <Marquee />
+          <Categories />
+          <Bestsellers wishlist={wishlist} onWish={onWish} onAdd={onAdd} />
+          <WhyUs />
+          <NewArrivals />
+          <Testimonials />
+          <Newsletter />
+          <Footer />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+
+</html>
